@@ -35,8 +35,16 @@ func main() {
 			// read the lines
 			input := c.String("input")
 			output := c.String("output")
-			processFile(input, output)
 
+			// channel to communicate between goroutines
+			msg := make(chan data.LoadResult)
+			done := make(chan bool)
+
+			go processFile(input, msg)
+			go writeOutput(output, msg, done)
+
+			// wait until writing is done to exit
+			<-done
 			// process the lines
 			// write the lines
 			fmt.Println(hello())
@@ -50,7 +58,7 @@ func main() {
 	}
 }
 
-func processFile(fname string, output string) {
+func processFile(fname string, msg chan<- data.LoadResult) {
 	f, err := os.Open(fname)
 	defer f.Close()
 
@@ -63,17 +71,28 @@ func processFile(fname string, output string) {
 		if err := json.Unmarshal(s.Bytes(), &v); err != nil {
 			//handle error
 		}
-		// do something with v
-		writeOutput(output, v)
 		fmt.Println(v.CustomerID)
 		fmt.Println(v.LoadAmount)
+
+		// do something with v
+		var loadResult *data.LoadResult
+		loadResult = new(data.LoadResult)
+		loadResult.CustomerID = v.CustomerID
+		loadResult.ID = v.ID
+		loadResult.Accepted = true
+
+		msg <- *loadResult
+
 	}
+
+	close(msg)
+
 	if s.Err() != nil {
 		// handle scan error
 	}
 }
 
-func writeOutput(fname string, load data.Load) {
+func writeOutput(fname string, msg <-chan data.LoadResult, done chan<- bool) {
 	file, err := os.OpenFile(fname, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 
 	if err != nil {
@@ -82,18 +101,23 @@ func writeOutput(fname string, load data.Load) {
 
 	datawriter := bufio.NewWriter(file)
 
-	var loadResult *data.LoadResult
-	loadResult = new(data.LoadResult)
-	loadResult.CustomerID = load.CustomerID
-	loadResult.ID = load.ID
-	loadResult.Accepted = true
+	for {
+		loadResult, more := <-msg
+		if more {
+			fmt.Println("received result")
+			b, _ := json.Marshal(loadResult)
+			_, _ = datawriter.Write(b)
+			datawriter.WriteString("\n")
+		} else {
+			fmt.Println("done receiving results")
+			datawriter.Flush()
+			file.Close()
+			done <- true
+			close(done)
+			return
+		}
+	}
 
-	b, err := json.Marshal(loadResult)
-	_, _ = datawriter.Write(b)
-	datawriter.WriteString("\n")
-
-	datawriter.Flush()
-	file.Close()
 }
 
 func hello() string {
