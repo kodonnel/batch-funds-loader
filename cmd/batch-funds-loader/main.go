@@ -60,11 +60,13 @@ func main() {
 
 func processFile(fname string, msg chan<- data.LoadResult) {
 	f, err := os.Open(fname)
-	defer f.Close()
 
 	if err != nil {
 		// handle error
 	}
+
+	defer f.Close()
+
 	s := bufio.NewScanner(f)
 	for s.Scan() {
 		var v data.Load
@@ -74,14 +76,38 @@ func processFile(fname string, msg chan<- data.LoadResult) {
 		fmt.Println(v.CustomerID)
 		fmt.Println(v.LoadAmount)
 
-		// do something with v
-		var loadResult *data.LoadResult
-		loadResult = new(data.LoadResult)
-		loadResult.CustomerID = v.CustomerID
-		loadResult.ID = v.ID
-		loadResult.Accepted = true
+		// MOVE TO HANDLER CODE
 
-		msg <- *loadResult
+		// check if duplicate
+		exists := data.CheckLoadIDExistsForCustomer(v.ID, v.CustomerID)
+
+		if exists == false {
+
+			// check new load validity
+			// data.CheckDailyLimitExceededForCustomer
+			// data.CheckWeeklyLimitExceededForCustomer
+			// data.CheckMaxLoadsExceededForCustomer
+
+			var vl data.VelocityLimit
+			vl.CustomerID = v.CustomerID
+			vl.DailyAmount = 1000
+			vl.WeeklyAmount = 1000
+			vl.DailyLoads = 1
+			vl.LoadIDs = append(vl.LoadIDs, v.ID)
+
+			data.AddVelocityLimit(vl)
+
+			// if valid add VL and return success
+			var loadResult *data.LoadResult
+			loadResult = new(data.LoadResult)
+			loadResult.CustomerID = v.CustomerID
+			loadResult.ID = v.ID
+			loadResult.Accepted = true
+
+			// else return decline
+
+			msg <- *loadResult
+		}
 
 	}
 
