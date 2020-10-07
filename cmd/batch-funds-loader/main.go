@@ -8,6 +8,7 @@ import (
 	"os"
 
 	data "github.com/kodonnel/batch-funds-loader/internal/data"
+	"github.com/kodonnel/batch-funds-loader/internal/utils"
 	"github.com/urfave/cli/v2"
 )
 
@@ -69,45 +70,105 @@ func processFile(fname string, msg chan<- data.LoadResult) {
 
 	s := bufio.NewScanner(f)
 	for s.Scan() {
-		var v data.Load
-		if err := json.Unmarshal(s.Bytes(), &v); err != nil {
+		var l data.Load
+		if err := json.Unmarshal(s.Bytes(), &l); err != nil {
 			//handle error
 		}
-		fmt.Println(v.CustomerID)
-		fmt.Println(v.LoadAmount)
+		fmt.Println(l.CustomerID)
+		fmt.Println(l.LoadAmount)
 
 		// MOVE TO HANDLER CODE
 
 		// check if duplicate
-		exists := data.CheckLoadIDExistsForCustomer(v.ID, v.CustomerID)
+		if !data.IsDuplicate(l) {
 
-		if exists == false {
+			fmt.Printf("checking load %s customer %s\n", l.ID, l.CustomerID)
 
-			// check new load validity
-			// data.CheckDailyLimitExceededForCustomer
-			// data.CheckWeeklyLimitExceededForCustomer
-			// data.CheckMaxLoadsExceededForCustomer
+			sameDayLoads := data.GetLoads(l.CustomerID, true, utils.GetStartForDay(l.Time), utils.GetEndForDay(l.Time))
+			accepted := true
+			fmt.Printf("Number of sameDayLoads %d \n", len(sameDayLoads))
+			if len(sameDayLoads) >= 3 {
+				accepted = false
+			}
 
-			var vl data.VelocityLimit
-			vl.CustomerID = v.CustomerID
-			vl.DailyAmount = 1000
-			vl.WeeklyAmount = 1000
-			vl.DailyLoads = 1
-			vl.LoadIDs = append(vl.LoadIDs, v.ID)
+			dailySum := 0.0
+			for _, existingLoad := range sameDayLoads {
+				dailySum = dailySum + utils.GetFloatAmount(existingLoad.LoadAmount)
+			}
+			if (dailySum + utils.GetFloatAmount(l.LoadAmount)) >= 5000 {
+				accepted = false
+			}
 
-			data.AddVelocityLimit(vl)
+			fmt.Printf("load time %s start time %s end time %s \n", l.Time, utils.GetStartForWeek(l.Time), utils.GetEndForWeek(l.Time))
+			sameWeekLoads := data.GetLoads(l.CustomerID, true, utils.GetStartForWeek(l.Time), utils.GetEndForWeek(l.Time))
+			fmt.Printf("Number of sameWeekLoads %d \n", len(sameWeekLoads))
 
-			// if valid add VL and return success
+			weeklySum := 0.0
+			for _, existingWeekLoad := range sameWeekLoads {
+				weeklySum = weeklySum + utils.GetFloatAmount(existingWeekLoad.LoadAmount)
+			}
+			fmt.Printf("weely sum was %f load amount is %f \n", weeklySum, utils.GetFloatAmount(l.LoadAmount))
+
+			fmt.Printf("total %f \n", weeklySum+utils.GetFloatAmount(l.LoadAmount))
+			if (weeklySum + utils.GetFloatAmount(l.LoadAmount)) >= 20000 {
+				accepted = false
+			}
+
+			l.Accepted = accepted // replace with IsValidLoad function
+			data.AddLoad(l)
+
 			var loadResult *data.LoadResult
 			loadResult = new(data.LoadResult)
-			loadResult.CustomerID = v.CustomerID
-			loadResult.ID = v.ID
-			loadResult.Accepted = true
-
-			// else return decline
+			loadResult.CustomerID = l.CustomerID
+			loadResult.ID = l.ID
+			loadResult.Accepted = l.Accepted
 
 			msg <- *loadResult
 		}
+
+		// if exists == false {
+
+		// 	//
+		// 	// check new load validity
+		// 	// data.CheckDailyLimitExceededForCustomer
+		// 	// data.CheckWeeklyLimitExceededForCustomer
+		// 	// data.CheckMaxLoadsExceededForCustomer
+
+		// 	//vlexisting, errs := data.GetVelocityLimitForCustomer(v.CustomerID)
+
+		// 	// if errs != nil {
+		// 	// 	// customer did not exist
+		// 	// 	var vl data.VelocityLimit
+		// 	// 	vl.CustomerID = v.CustomerID
+		// 	// 	vl.DailyAmount = v.LoadAmount
+		// 	// 	vl.WeeklyAmount = v.LoadAmount
+		// 	// 	vl.DailyLoads = 1
+		// 	// 	vl.LoadIDs = append(vl.LoadIDs, v.ID)
+
+		// 	// 	data.AddVelocityLimit(vl)
+
+		// 	// }
+
+		// 	var vl data.VelocityLimit
+		// 	vl.CustomerID = l.CustomerID
+		// 	vl.DailyAmount = 1000
+		// 	vl.WeeklyAmount = 1000
+		// 	vl.DailyLoads = 1
+		// 	vl.LoadIDs = append(vl.LoadIDs, l.ID)
+
+		// 	data.AddVelocityLimit(vl)
+
+		// 	// if valid add VL and return success
+		// 	var loadResult *data.LoadResult
+		// 	loadResult = new(data.LoadResult)
+		// 	loadResult.CustomerID = v.CustomerID
+		// 	loadResult.ID = v.ID
+		// 	loadResult.Accepted = true
+
+		// 	// else return decline
+
+		// 	msg <- *loadResult
+		// }
 
 	}
 
