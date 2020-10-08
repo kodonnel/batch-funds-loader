@@ -4,9 +4,8 @@ batch-funds-loader is a Golang program that accepts or declines attempts to load
 
 ## Installation
 
-### *go get*
-
-    $ go get -u github.com/kodonnel/batch-funds-loader
+    $ git clone git@github.com:kodonnel/batch-funds-loader.git
+    $ cd batch-funds-loader
     $ make build
     $ ./batch-funds-loader
 
