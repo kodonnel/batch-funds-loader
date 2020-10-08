@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 
+	"github.com/go-playground/validator"
 	"github.com/kodonnel/batch-funds-loader/internal/data"
 	"github.com/kodonnel/batch-funds-loader/internal/utils"
 	"github.com/sirupsen/logrus"
@@ -11,15 +12,19 @@ import (
 // ErrDuplicateFound indicates that a load with the same id and customer_id was already processed
 var ErrDuplicateFound = fmt.Errorf("Duplicate Load Request Found")
 
+// ErrValidationError indicates that a load did not have valid fields
+var ErrValidationError = fmt.Errorf("Unable to validate Load Request")
+
 // Loads handler for getting and updating funds load requests
 type Loads struct {
 	l  *logrus.Logger
 	db *data.LoadsDB
+	v  *validator.Validate
 }
 
 // NewLoads returns a new products handler with the given logger
-func NewLoads(l *logrus.Logger, db *data.LoadsDB) *Loads {
-	return &Loads{l, db}
+func NewLoads(l *logrus.Logger, db *data.LoadsDB, v *validator.Validate) *Loads {
+	return &Loads{l, db, v}
 }
 
 // ProcessLoadRequest processes the load request and return the result
@@ -27,6 +32,20 @@ func NewLoads(l *logrus.Logger, db *data.LoadsDB) *Loads {
 func (lh *Loads) ProcessLoadRequest(req data.Load) (*data.LoadResult, error) {
 
 	lh.l.Infoln("processing load request", req)
+
+	// validate the loadFunds request
+	// if any fields are invalid, skip
+	err := lh.v.Struct(req)
+
+	if err != nil {
+		lh.l.Errorln("Unable to validate", err)
+		lh.l.Infoln("Could not validate load request, skipping", req)
+
+		for _, e := range err.(validator.ValidationErrors) {
+			lh.l.Errorln("Validate error", e)
+		}
+		return nil, ErrValidationError
+	}
 
 	var loadResult *data.LoadResult
 

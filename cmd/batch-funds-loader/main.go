@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/go-playground/validator"
 	data "github.com/kodonnel/batch-funds-loader/internal/data"
 	"github.com/kodonnel/batch-funds-loader/internal/handlers"
 	"github.com/sirupsen/logrus"
@@ -67,8 +68,12 @@ func main() {
 			// create db instance
 			db := data.NewLoadsDB(logger)
 
+			// create validator
+			v := validator.New()
+			v.RegisterValidation("loadAmount", data.ValidateLoadAmount)
+
 			// req handlers
-			loadsHandler := handlers.NewLoads(logger, db)
+			loadsHandler := handlers.NewLoads(logger, db, v)
 
 			go processFile(logger, input, msg, loadsHandler)
 			go writeOutput(logger, output, msg, done)

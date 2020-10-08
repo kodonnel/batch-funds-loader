@@ -3,6 +3,7 @@ module github.com/kodonnel/batch-funds-loader
 go 1.13
 
 require (
+	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/micro/cli v0.2.0 // indirect
 	github.com/nicholasjackson/building-microservices-youtube/product-api v0.0.0-20200918064506-0260dd0e3676
 	github.com/sirupsen/logrus v1.7.0

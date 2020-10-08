@@ -23,7 +23,7 @@ type Load struct {
 	// the amount for this load
 	//
 	// required: true
-	LoadAmount string `json:"load_amount" validate:"required"`
+	LoadAmount string `json:"load_amount" validate:"required,loadAmount"`
 
 	// the time for this load
 	//
