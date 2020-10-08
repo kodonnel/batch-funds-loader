@@ -40,9 +40,23 @@ func (lh *Loads) ProcessLoadRequest(req data.Load) (*data.LoadResult, error) {
 
 		dailySum := 0.0
 		for _, existingLoad := range sameDayLoads {
-			dailySum = dailySum + utils.GetFloatAmount(existingLoad.LoadAmount)
+
+			eamount, err := utils.GetFloatAmount(existingLoad.LoadAmount)
+			if err != nil {
+				lh.l.Errorln("unable to get amount from fundsload", err)
+				continue
+			}
+
+			dailySum = dailySum + eamount
 		}
-		if (dailySum + utils.GetFloatAmount(req.LoadAmount)) >= 5000 {
+
+		ramount, err := utils.GetFloatAmount(req.LoadAmount)
+
+		if err != nil {
+			lh.l.Errorln("unable to get amount from fundsload request", err)
+		}
+
+		if (dailySum + ramount) >= 5000 {
 			accepted = false
 		}
 
@@ -50,10 +64,22 @@ func (lh *Loads) ProcessLoadRequest(req data.Load) (*data.LoadResult, error) {
 
 		weeklySum := 0.0
 		for _, existingWeekLoad := range sameWeekLoads {
-			weeklySum = weeklySum + utils.GetFloatAmount(existingWeekLoad.LoadAmount)
+
+			weamount, err := utils.GetFloatAmount(existingWeekLoad.LoadAmount)
+
+			if err != nil {
+				lh.l.Errorln("unable to get amount from fundsload request", err)
+				continue
+			}
+			weeklySum = weeklySum + weamount
 		}
 
-		if (weeklySum + utils.GetFloatAmount(req.LoadAmount)) >= 20000 {
+		rwamount, err := utils.GetFloatAmount(req.LoadAmount)
+		if err != nil {
+			lh.l.Errorln("unable to get amount from fundsload request", err)
+		}
+
+		if (weeklySum + rwamount) >= 20000 {
 			accepted = false
 		}
 
