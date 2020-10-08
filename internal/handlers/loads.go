@@ -15,6 +15,10 @@ var ErrDuplicateFound = fmt.Errorf("Duplicate Load Request Found")
 // ErrValidationError indicates that a load did not have valid fields
 var ErrValidationError = fmt.Errorf("Unable to validate Load Request")
 
+const maxLoadsPerDay = 3
+const maxLoadAmountPerDay = 5000.00
+const maxLoadAmountPerWeek = 20000.00
+
 // Loads handler for getting and updating funds load requests
 type Loads struct {
 	l  *logrus.Logger
@@ -79,7 +83,7 @@ func (lh *Loads) isWithinDailyLimits(load data.Load) bool {
 
 	sameDayLoads := lh.db.GetLoads(load.CustomerID, true, utils.GetStartOfDay(load.Time), utils.GetEndOfDay(load.Time))
 
-	if len(sameDayLoads) >= 3 {
+	if len(sameDayLoads) >= maxLoadsPerDay {
 		lh.l.Infoln("exceeded maximum loads per day")
 		result = false
 	}
@@ -103,7 +107,7 @@ func (lh *Loads) isWithinDailyLimits(load data.Load) bool {
 		return false
 	}
 
-	if (dailySum + ramount) >= 5000 {
+	if (dailySum + ramount) >= maxLoadAmountPerDay {
 		lh.l.Infoln("exceeded maximum load amount per day")
 		result = false
 	}
@@ -141,7 +145,7 @@ func (lh *Loads) isWithinWeeklyLimits(load data.Load) bool {
 		return false
 	}
 
-	if (weeklySum + rwamount) >= 20000 {
+	if (weeklySum + rwamount) >= maxLoadAmountPerWeek {
 		result = false
 		lh.l.Infoln("exceeded maximum load amount per week")
 
