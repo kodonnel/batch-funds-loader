@@ -23,6 +23,7 @@ func NewLoads(l *logrus.Logger, db *data.LoadsDB) *Loads {
 }
 
 // ProcessLoadRequest processes the load request and return the result
+// (apply business logic)
 func (lh *Loads) ProcessLoadRequest(req data.Load) (*data.LoadResult, error) {
 
 	lh.l.Infoln("processing load request", req)
@@ -70,7 +71,7 @@ func (lh *Loads) isWithinDailyLimits(load data.Load) bool {
 		eamount, err := utils.GetFloatAmount(existingLoad.LoadAmount)
 		if err != nil {
 			lh.l.Errorln("unable to get amount from fundsload", err)
-			continue
+			return false
 		}
 
 		dailySum = dailySum + eamount
@@ -80,6 +81,7 @@ func (lh *Loads) isWithinDailyLimits(load data.Load) bool {
 
 	if err != nil {
 		lh.l.Errorln("unable to get amount from fundsload request", err)
+		return false
 	}
 
 	if (dailySum + ramount) >= 5000 {
@@ -108,14 +110,16 @@ func (lh *Loads) isWithinWeeklyLimits(load data.Load) bool {
 
 		if err != nil {
 			lh.l.Errorln("unable to get amount from fundsload request", err)
-			continue
+			return false
 		}
 		weeklySum = weeklySum + weamount
 	}
 
 	rwamount, err := utils.GetFloatAmount(load.LoadAmount)
 	if err != nil {
+		// if we could not get the amount, do not accept the transaction
 		lh.l.Errorln("unable to get amount from fundsload request", err)
+		return false
 	}
 
 	if (weeklySum + rwamount) >= 20000 {

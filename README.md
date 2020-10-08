@@ -85,6 +85,8 @@ A maximum of 3 loads can be performed per day, regardless of amount.
 Both accepted and not accepted loads apply for the following requirement:
 If a load ID is observed more than once for a particular user, all but the first instance can be ignored.
 
+If a load could not be processed for some reason, it will not be accepted.
+
 ## Testing
 
     $ make test
