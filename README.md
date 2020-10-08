@@ -12,17 +12,70 @@ batch-funds-loader is a Golang program that accepts or declines attempts to load
 
 ## Usage
 
-    $ ./batch-funds-loader [-h] [-i inputfile] [-o outputfile] 
+    $ ./batch-funds-loader [-h] [-v] [-i inputfile] [-o outputfile] 
 
-## Assumptions
+    *h - help*
+    *v - verbose*
+    *i - inputfile*
+    *o - outputfile*
 
 ## Example
 
 ### *command*
 
-### *input*
+    $ ./batch-funds-loader -i inputfile.txt -o outputfile.txt
 
-### *output*
+### *inputfile.txt contents (before running command)*
+
+    ```
+    {"id":"15888","customer_id":"528","load_amount":"$4000.47","time":"2000-01-02T00:00:00Z"}
+    {"id":"15889","customer_id":"528","load_amount":"$4000.47","time":"2000-01-03T00:00:00Z"}
+    {"id":"15890","customer_id":"528","load_amount":"$4000.47","time":"2000-01-04T00:00:00Z"}
+    {"id":"15891","customer_id":"528","load_amount":"$4000.47","time":"2000-01-05T00:00:00Z"}
+    {"id":"15892","customer_id":"528","load_amount":"$4000.47","time":"2000-01-06T00:00:00Z"}
+    {"id":"15893","customer_id":"528","load_amount":"$4000.47","time":"2000-01-07T00:00:00Z"}
+    {"id":"15895","customer_id":"528","load_amount":"$4000.47","time":"2000-01-09T00:00:00Z"}
+    {"id":"30081","customer_id":"154","load_amount":"$1413.18","time":"2000-01-01T01:01:22Z"}
+    {"id":"26540","customer_id":"426","load_amount":"$404.56","time":"2000-01-01T02:02:44Z"}
+    {"id":"26544","customer_id":"426","load_amount":"$5000.56","time":"2000-01-01T02:02:44Z"}
+    {"id":"26541","customer_id":"426","load_amount":"$404.56","time":"2000-01-01T02:02:44Z"}
+    {"id":"26542","customer_id":"426","load_amount":"$404.56","time":"2000-01-01T02:02:44Z"}
+    {"id":"26543","customer_id":"426","load_amount":"$404.56","time":"2000-01-01T02:02:44Z"}
+    {"id":"10694","customer_id":"1","load_amount":"$785.11","time":"2000-01-01T03:04:06Z"}
+    {"id":"10694","customer_id":"1","load_amount":"$400.11","time":"2000-01-01T03:04:06Z"}
+    ```
+
+### *outputfile.txt contents (after running command)*
+
+    ```
+    {"id":"15888","customer_id":"528","accepted":true}
+    {"id":"15889","customer_id":"528","accepted":true}
+    {"id":"15890","customer_id":"528","accepted":true}
+    {"id":"15891","customer_id":"528","accepted":true}
+    {"id":"15892","customer_id":"528","accepted":false}
+    {"id":"15893","customer_id":"528","accepted":false}
+    {"id":"15895","customer_id":"528","accepted":true}
+    {"id":"30081","customer_id":"154","accepted":true}
+    {"id":"26540","customer_id":"426","accepted":true}
+    {"id":"26544","customer_id":"426","accepted":false}
+    {"id":"26541","customer_id":"426","accepted":true}
+    {"id":"26542","customer_id":"426","accepted":true}
+    {"id":"26543","customer_id":"426","accepted":false}
+    {"id":"10694","customer_id":"1","accepted":true}
+    ```
+
+## Assumptions
+
+If the given output file does not exist, it will be created. Otherwise it will be appended to.
+
+For a load funds request
+    {
+        "id": "1234",
+        "customer_id": "1234",
+        "load_amount": "$123.45",
+        "time": "2018-01-01T00:00:00Z"
+    }
+
 
 ## Testing
 
