@@ -76,6 +76,14 @@ For a load funds request
         "time": "2018-01-01T00:00:00Z"
     }
 
+Loads that were not accepted do not count against the maximum for the follow requirements:
+A maximum of $5,000 can be loaded per day. 
+A maximum of $20,000 can be loaded per week.
+A maximum of 3 loads can be performed per day, regardless of amount.
+
+
+Both accepted and not accepted loads apply for the following requirement:
+If a load ID is observed more than once for a particular user, all but the first instance can be ignored.
 
 ## Testing
 
