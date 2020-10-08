@@ -9,7 +9,7 @@ import (
 func GetFloatAmount(amount string) (float64, error) {
 	trimmed := trimFirstRune(amount)
 
-	return strconv.ParseFloat(trimmed, 64)
+	return strconv.ParseFloat(trimmed, 32)
 }
 
 func trimFirstRune(s string) string {

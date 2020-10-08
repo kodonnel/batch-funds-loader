@@ -13,12 +13,12 @@ type Load struct {
 	// the id for the load
 	//
 	// required: true
-	ID string `json:"id" validate:"required"`
+	ID string `json:"id" validate:"required,identifier"`
 
 	// the id for the load customer
 	//
 	// required: true
-	CustomerID string `json:"customer_id" validate:"required"`
+	CustomerID string `json:"customer_id" validate:"required,identifier"`
 
 	// the amount for this load
 	//

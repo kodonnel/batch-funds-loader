@@ -79,11 +79,11 @@ load example:
     ```
 For a valid load:
 - id will be a string consisting only of numeric characters
-- id will be greater than 1 and less than 2147483647 (the max for golangs int32 data type)
+- id will be greater than or equal to 1 and less than 2147483647 (the max for golangs int32 data type)
 - customer_id will be a string consisting only of numeric characters
-- customer_id will be greater than 1 and less than 2147483647 (the max for golangs int32 data type)
+- customer_id will be greater than or equal to 1 and less than 2147483647 (the max for golangs int32 data type)
 - load_amount will always match the pattern ^\$\d+\.\d{2}$
-- load amount will not be negative and will be less than 3.4028234663852886e+38 (the max for golangs float32 data type)
+- load amount will not be negative and will be less than 1.7976931348623157e+308 (the max for golangs float64 data type)
 - time will always be provided in the ISO 8601 format in UTC
 
 Invalid load funds requests will be ignored.

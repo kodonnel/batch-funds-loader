@@ -71,6 +71,7 @@ func main() {
 			// create validator
 			v := validator.New()
 			v.RegisterValidation("loadAmount", data.ValidateLoadAmount)
+			v.RegisterValidation("identifier", data.ValidateID)
 
 			// req handlers
 			loadsHandler := handlers.NewLoads(logger, db, v)
