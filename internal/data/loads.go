@@ -85,8 +85,8 @@ func (dbh *LoadsDB) GetLoads(customer string, accepted bool, start, end time.Tim
 
 	for _, load := range dbh.loadList {
 
-		if load.CustomerID == customer && load.Accepted {
-			if utils.InTimeSpan(start, end, load.Time) {
+		if load.CustomerID == customer && load.Accepted == accepted {
+			if utils.IsInTimeSpan(start, end, load.Time) {
 				dbh.log.Infoln("found past fundsload request", load.ID)
 				loadListForTime = append(loadListForTime, load)
 			}

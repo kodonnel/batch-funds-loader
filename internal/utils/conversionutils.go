@@ -1,21 +1,15 @@
 package utils
 
 import (
-	"fmt"
 	"strconv"
 	"unicode/utf8"
 )
 
 // GetFloatAmount trims the dollar sign and returns a float
-func GetFloatAmount(amount string) float64 {
+func GetFloatAmount(amount string) (float64, error) {
 	trimmed := trimFirstRune(amount)
 
-	f, err := strconv.ParseFloat(trimmed, 64)
-	if err != nil {
-		fmt.Println("Bad amount")
-	}
-
-	return f
+	return strconv.ParseFloat(trimmed, 64)
 }
 
 func trimFirstRune(s string) string {

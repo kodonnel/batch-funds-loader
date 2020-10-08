@@ -1,10 +1,14 @@
 package handlers
 
 import (
+	"fmt"
+
 	"github.com/kodonnel/batch-funds-loader/internal/data"
 	"github.com/kodonnel/batch-funds-loader/internal/utils"
 	"github.com/sirupsen/logrus"
 )
+
+var ErrDuplicateFound = fmt.Errorf("Duplicate Load Request Found")
 
 // Loads handler for getting and updating funds load requests
 type Loads struct {
@@ -17,15 +21,17 @@ func NewLoads(l *logrus.Logger, db *data.LoadsDB) *Loads {
 	return &Loads{l, db}
 }
 
-// ProcessLoadRequest processes the load request and sends a response through a receiving channel
-func (lh *Loads) ProcessLoadRequest(req data.Load, msg chan<- data.LoadResult) {
+// ProcessLoadRequest processes the load request and return the result
+func (lh *Loads) ProcessLoadRequest(req data.Load) (*data.LoadResult, error) {
 
 	lh.l.Infoln("processing load request", req)
+
+	var loadResult *data.LoadResult
 
 	// check if duplicate
 	if !lh.db.IsDuplicate(req) {
 
-		sameDayLoads := lh.db.GetLoads(req.CustomerID, true, utils.GetStartForDay(req.Time), utils.GetEndForDay(req.Time))
+		sameDayLoads := lh.db.GetLoads(req.CustomerID, true, utils.GetStartOfDay(req.Time), utils.GetEndOfDay(req.Time))
 		accepted := true
 
 		if len(sameDayLoads) >= 3 {
@@ -40,7 +46,7 @@ func (lh *Loads) ProcessLoadRequest(req data.Load, msg chan<- data.LoadResult) {
 			accepted = false
 		}
 
-		sameWeekLoads := lh.db.GetLoads(req.CustomerID, true, utils.GetStartForWeek(req.Time), utils.GetEndForWeek(req.Time))
+		sameWeekLoads := lh.db.GetLoads(req.CustomerID, true, utils.GetStartOfWeek(req.Time), utils.GetEndOfWeek(req.Time))
 
 		weeklySum := 0.0
 		for _, existingWeekLoad := range sameWeekLoads {
@@ -54,13 +60,12 @@ func (lh *Loads) ProcessLoadRequest(req data.Load, msg chan<- data.LoadResult) {
 		req.Accepted = accepted // replace with IsValidLoad function
 		lh.db.AddLoad(req)
 
-		var loadResult *data.LoadResult
 		loadResult = new(data.LoadResult)
 		loadResult.CustomerID = req.CustomerID
 		loadResult.ID = req.ID
 		loadResult.Accepted = req.Accepted
-
-		msg <- *loadResult
+		return loadResult, nil
 	}
 
+	return nil, ErrDuplicateFound
 }

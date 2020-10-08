@@ -2,22 +2,22 @@ package utils
 
 import "time"
 
-// GetStartForDay returns a time object for the start of the day
-func GetStartForDay(t time.Time) time.Time {
+// GetStartOfDay returns a time object for the start of the day
+func GetStartOfDay(t time.Time) time.Time {
 
 	start := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
 	return start
 }
 
-// GetEndForDay returns a time object for the end of the day
-func GetEndForDay(t time.Time) time.Time {
+// GetEndOfDay returns a time object for the end of the day
+func GetEndOfDay(t time.Time) time.Time {
 
 	end := time.Date(t.Year(), t.Month(), t.Day(), 23, 59, 59, 999999999, t.Location())
 	return end
 }
 
-// GetStartForWeek returns a time object for the start of the day
-func GetStartForWeek(t time.Time) time.Time {
+// GetStartOfWeek returns a time object for the start of the day
+func GetStartOfWeek(t time.Time) time.Time {
 
 	weekday := int(t.Weekday())
 	daysToRemove := weekday * -1
@@ -26,8 +26,8 @@ func GetStartForWeek(t time.Time) time.Time {
 	return start
 }
 
-// GetEndForWeek returns a time object for the end of the day
-func GetEndForWeek(t time.Time) time.Time {
+// GetEndOfWeek returns a time object for the end of the day
+func GetEndOfWeek(t time.Time) time.Time {
 
 	weekday := int(t.Weekday())
 	daysToAdd := 6 - weekday
@@ -36,8 +36,8 @@ func GetEndForWeek(t time.Time) time.Time {
 	return end
 }
 
-// InTimeSpan returns true if the given time is between the start and end times
-func InTimeSpan(start, end, check time.Time) bool {
+// IsInTimeSpan returns true if the given time is between the start and end times
+func IsInTimeSpan(start, end, check time.Time) bool {
 
 	// check inclusive between
 	return check.After(start.Add(time.Duration(-1)*time.Second)) && check.Before(end.Add(time.Duration(1)*time.Second))

@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"encoding/json"
-	"io/ioutil"
 	"log"
 	"os"
 
@@ -52,7 +51,7 @@ func main() {
 			//logger := log.New(os.Stdout, "batch-funds-loader", log.LstdFlags)
 			logger := &logrus.Logger{
 				Out:   os.Stdout,
-				Level: logrus.DebugLevel,
+				Level: logrus.InfoLevel,
 				Formatter: &logrus.TextFormatter{
 					DisableColors:   true,
 					TimestampFormat: "2006-01-02 15:04:05",
@@ -62,7 +61,7 @@ func main() {
 
 			// only show logs if verbose is set
 			if !verbose {
-				logger.SetOutput(ioutil.Discard)
+				logger.SetLevel(logrus.FatalLevel)
 			}
 
 			// create db instance
@@ -71,8 +70,8 @@ func main() {
 			// req handlers
 			loadsHandler := handlers.NewLoads(logger, db)
 
-			go processFile(input, msg, loadsHandler)
-			go writeOutput(output, msg, done)
+			go processFile(logger, input, msg, loadsHandler)
+			go writeOutput(logger, output, msg, done)
 
 			// wait until writing is done to exit
 			<-done
@@ -86,57 +85,89 @@ func main() {
 	}
 }
 
-func processFile(fname string, msg chan<- data.LoadResult, lh *handlers.Loads) {
+func processFile(log *logrus.Logger, fname string, msg chan<- data.LoadResult, lh *handlers.Loads) {
 	f, err := os.Open(fname)
 
 	if err != nil {
 		// handle error
+		log.Fatalln("unable to process file,", err)
 	}
 
+	// make sure filehandle is closed
 	defer f.Close()
 
 	s := bufio.NewScanner(f)
 	for s.Scan() {
 		var l data.Load
 		if err := json.Unmarshal(s.Bytes(), &l); err != nil {
-			//handle error
+			// log error and continue to the next item
+			log.Errorln("unable to process load request,", err)
+			continue
 		}
 
-		lh.ProcessLoadRequest(l, msg)
+		loadResult, err := lh.ProcessLoadRequest(l)
+		if err != nil {
+			// log error and continue to the next item
+			log.Errorln("unable to process load request", l, err)
+			continue
+		}
+
+		// write the loadResult to the lrChannel
+		msg <- *loadResult
 	}
 
 	close(msg)
 
 	if s.Err() != nil {
 		// handle scan error
+		log.Fatalln("unable to process file,", err)
 	}
 }
 
-func writeOutput(fname string, msg <-chan data.LoadResult, done chan<- bool) {
+func writeOutput(log *logrus.Logger, fname string, msg <-chan data.LoadResult, done chan<- bool) {
 	file, err := os.OpenFile(fname, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 
-	if err != nil {
-		log.Fatalf("failed creating file: %s", err)
-	}
-
 	datawriter := bufio.NewWriter(file)
+
+	// ensure resources are freed, even if errors occured
+	defer file.Close()
+	defer close(done)
+
+	if err != nil {
+		log.Fatalf("unable to write output", err)
+	}
 
 	for {
 		loadResult, more := <-msg
 		if more {
 			// received a new LoadRequest
-			b, _ := json.Marshal(loadResult)
-			_, _ = datawriter.Write(b)
-			datawriter.WriteString("\n")
+			b, err := json.Marshal(loadResult)
+			if err != nil {
+				log.Errorln("unable to write load result", err)
+			}
+
+			_, err = datawriter.Write(b)
+			if err != nil {
+				log.Errorln("unable to write load result", err)
+				continue
+			}
+
+			_, err = datawriter.WriteString("\n")
+			if err != nil {
+				log.Errorln("unable to write load result", err)
+				continue
+			}
+
 		} else {
 
 			// finished receiving LoadRequests
-			datawriter.Flush()
-			file.Close()
+			// free resources
+			err = datawriter.Flush()
+			if err != nil {
+				log.Errorln("unable to flush data writer", err)
+			}
 			done <- true
-			close(done)
 			return
 		}
 	}
-
 }
