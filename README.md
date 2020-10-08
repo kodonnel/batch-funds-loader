@@ -69,21 +69,30 @@ batch-funds-loader is a Golang program that accepts or declines attempts to load
 If the given output file does not exist, it will be created. Otherwise it will be appended to.
 
 For a load funds request
+    ```
     {
         "id": "1234",
         "customer_id": "1234",
         "load_amount": "$123.45",
         "time": "2018-01-01T00:00:00Z"
     }
+    ```
+    
+- id will be a string consisting only of numeric characters
+- id will be greater than 1 and less than 2147483647 (the max for golangs int32 data type)
+- customer_id will be a string consisting only of numeric characters
+- customer_id will be greater than 1 and less than 2147483647 (the max for golangs int32 data type)
+- load_amount will always match the pattern $\d+\.\d\d
+- time will always be provided in the ISO 8601 format in UTC
 
 Loads that were not accepted do not count against the maximum for the follow requirements:
-A maximum of $5,000 can be loaded per day. 
-A maximum of $20,000 can be loaded per week.
-A maximum of 3 loads can be performed per day, regardless of amount.
+- A maximum of $5,000 can be loaded per day. 
+- A maximum of $20,000 can be loaded per week.
+- A maximum of 3 loads can be performed per day, regardless of amount.
 
 
 Both accepted and not accepted loads apply for the following requirement:
-If a load ID is observed more than once for a particular user, all but the first instance can be ignored.
+- If a load ID is observed more than once for a particular user, all but the first instance can be ignored.
 
 If a load could not be processed for some reason, it will not be accepted.
 

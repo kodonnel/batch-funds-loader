@@ -12,29 +12,27 @@ import (
 type Load struct {
 	// the id for the load
 	//
-	// required: false
-	// min:1
+	// required: true
 	ID string `json:"id" validate:"required"`
 
 	// the id for the load customer
 	//
 	// required: true
-	// max length: 255
 	CustomerID string `json:"customer_id" validate:"required"`
 
 	// the amount for this load
 	//
-	// required: false
-	// max length: 10000
+	// required: true
 	LoadAmount string `json:"load_amount" validate:"required"`
 
 	// the time for this load
 	//
 	// required: true
-	// min: 0.01
 	Time time.Time `json:"time" validate:"required"`
 
 	// if the load request was accepted
+	//
+	// required: false
 	Accepted bool `json:"accepted"`
 }
 
