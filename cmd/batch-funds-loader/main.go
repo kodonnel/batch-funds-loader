@@ -140,7 +140,7 @@ func writeOutput(log *logrus.Logger, fname string, msg <-chan data.Load, done ch
 	defer close(done)
 
 	if err != nil {
-		log.Fatalf("unable to write output", err)
+		log.Fatalln("unable to write output", err)
 	}
 
 	for {
