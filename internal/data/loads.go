@@ -1,10 +1,10 @@
 package data
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/kodonnel/batch-funds-loader/internal/utils"
+	"github.com/sirupsen/logrus"
 )
 
 // Load defines the structure for an API fund load request
@@ -41,21 +41,36 @@ type Load struct {
 // Loads defines a slice of Load
 type Loads []*Load
 
-// AddLoad adds a new load to the data store
-func AddLoad(l Load) {
+// LoadsDB faux DB for loads
+type LoadsDB struct {
+	log      *logrus.Logger
+	loadList []*Load
+}
 
-	loadList = append(loadList, &l)
+// NewLoadsDB returns a new faux DB with logger
+func NewLoadsDB(l *logrus.Logger) *LoadsDB {
+
+	var loadList = []*Load{}
+	return &LoadsDB{l, loadList}
+}
+
+// AddLoad adds a new load to the data store
+func (dbh *LoadsDB) AddLoad(l Load) {
+
+	dbh.log.Infoln("saving fundsload request", l)
+	dbh.loadList = append(dbh.loadList, &l)
 }
 
 // IsDuplicate returns true if a load has already been send with the same ID and customerID
-func IsDuplicate(load Load) bool {
+func (dbh *LoadsDB) IsDuplicate(load Load) bool {
 
-	ids := GetLoadIDs(load.CustomerID)
+	dbh.log.Infoln("checking for duplicate fundsload request", load)
+	ids := dbh.getLoadIDs(load.CustomerID)
 	result := false
 
 	for _, id := range ids {
-
 		if load.ID == id {
+			dbh.log.Infoln("found duplicate fundsload request")
 			result = true
 		}
 	}
@@ -63,19 +78,16 @@ func IsDuplicate(load Load) bool {
 }
 
 // GetLoads returns the loads for a customer during the given day
-func GetLoads(customer string, accepted bool, start, end time.Time) []*Load {
+func (dbh *LoadsDB) GetLoads(customer string, accepted bool, start, end time.Time) []*Load {
 
+	dbh.log.Infoln("getting past fundsload requests for customer", customer)
 	var loadListForTime = []*Load{}
-	fmt.Printf("checking loads for customer %s \n", customer)
 
-	for _, load := range loadList {
-		fmt.Printf("check if load is in span: %s %s %s %s \n", load.CustomerID, load.ID, load.LoadAmount, load.Time)
+	for _, load := range dbh.loadList {
 
 		if load.CustomerID == customer && load.Accepted {
-			fmt.Printf("check if load is in span: %s %s %s %s \n", load.CustomerID, load.ID, load.LoadAmount, load.Time)
 			if utils.InTimeSpan(start, end, load.Time) {
-				fmt.Printf("it was \n")
-
+				dbh.log.Infoln("found past fundsload request", load.ID)
 				loadListForTime = append(loadListForTime, load)
 			}
 		}
@@ -84,19 +96,18 @@ func GetLoads(customer string, accepted bool, start, end time.Time) []*Load {
 	return loadListForTime
 }
 
-// GetLoadIDs returns all the load ids for a customer
-func GetLoadIDs(customer string) []string {
+// getLoadIDs returns all the load ids for a given customer
+func (dbh *LoadsDB) getLoadIDs(customer string) []string {
+
+	dbh.log.Infoln("getting past fundsload request ids for customer", customer)
 	var ids []string
 
-	for _, load := range loadList {
-
+	for _, load := range dbh.loadList {
 		if load.CustomerID == customer {
+			dbh.log.Infoln("found past fundsload request id", load.ID)
 			ids = append(ids, load.ID)
 		}
 	}
 
 	return ids
 }
-
-// hardcoded list instead of database
-var loadList = []*Load{}

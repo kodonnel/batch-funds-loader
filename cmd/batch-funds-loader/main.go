@@ -3,12 +3,13 @@ package main
 import (
 	"bufio"
 	"encoding/json"
-	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 
 	data "github.com/kodonnel/batch-funds-loader/internal/data"
-	"github.com/kodonnel/batch-funds-loader/internal/utils"
+	"github.com/kodonnel/batch-funds-loader/internal/handlers"
+	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )
 
@@ -30,25 +31,51 @@ func main() {
 				Usage:   "Output load results to `FILE`",
 				Value:   "output.txt",
 			},
+			&cli.BoolFlag{
+				Name:    "verbose",
+				Aliases: []string{"v"},
+				Usage:   "Enable verbose logging output to stdout",
+			},
 		},
 
 		Action: func(c *cli.Context) error {
-			// read the lines
+			// get flags from context
 			input := c.String("input")
 			output := c.String("output")
+			verbose := c.Bool("verbose")
 
 			// channel to communicate between goroutines
 			msg := make(chan data.LoadResult)
 			done := make(chan bool)
 
-			go processFile(input, msg)
+			// use the standard logger
+			//logger := log.New(os.Stdout, "batch-funds-loader", log.LstdFlags)
+			logger := &logrus.Logger{
+				Out:   os.Stdout,
+				Level: logrus.DebugLevel,
+				Formatter: &logrus.TextFormatter{
+					DisableColors:   true,
+					TimestampFormat: "2006-01-02 15:04:05",
+					FullTimestamp:   true,
+				},
+			}
+
+			// only show logs if verbose is set
+			if !verbose {
+				logger.SetOutput(ioutil.Discard)
+			}
+
+			// create db instance
+			db := data.NewLoadsDB(logger)
+
+			// req handlers
+			loadsHandler := handlers.NewLoads(logger, db)
+
+			go processFile(input, msg, loadsHandler)
 			go writeOutput(output, msg, done)
 
 			// wait until writing is done to exit
 			<-done
-			// process the lines
-			// write the lines
-			fmt.Println(hello())
 			return nil
 		},
 	}
@@ -59,7 +86,7 @@ func main() {
 	}
 }
 
-func processFile(fname string, msg chan<- data.LoadResult) {
+func processFile(fname string, msg chan<- data.LoadResult, lh *handlers.Loads) {
 	f, err := os.Open(fname)
 
 	if err != nil {
@@ -74,102 +101,8 @@ func processFile(fname string, msg chan<- data.LoadResult) {
 		if err := json.Unmarshal(s.Bytes(), &l); err != nil {
 			//handle error
 		}
-		fmt.Println(l.CustomerID)
-		fmt.Println(l.LoadAmount)
 
-		// MOVE TO HANDLER CODE
-
-		// check if duplicate
-		if !data.IsDuplicate(l) {
-
-			fmt.Printf("checking load %s customer %s\n", l.ID, l.CustomerID)
-
-			sameDayLoads := data.GetLoads(l.CustomerID, true, utils.GetStartForDay(l.Time), utils.GetEndForDay(l.Time))
-			accepted := true
-			fmt.Printf("Number of sameDayLoads %d \n", len(sameDayLoads))
-			if len(sameDayLoads) >= 3 {
-				accepted = false
-			}
-
-			dailySum := 0.0
-			for _, existingLoad := range sameDayLoads {
-				dailySum = dailySum + utils.GetFloatAmount(existingLoad.LoadAmount)
-			}
-			if (dailySum + utils.GetFloatAmount(l.LoadAmount)) >= 5000 {
-				accepted = false
-			}
-
-			fmt.Printf("load time %s start time %s end time %s \n", l.Time, utils.GetStartForWeek(l.Time), utils.GetEndForWeek(l.Time))
-			sameWeekLoads := data.GetLoads(l.CustomerID, true, utils.GetStartForWeek(l.Time), utils.GetEndForWeek(l.Time))
-			fmt.Printf("Number of sameWeekLoads %d \n", len(sameWeekLoads))
-
-			weeklySum := 0.0
-			for _, existingWeekLoad := range sameWeekLoads {
-				weeklySum = weeklySum + utils.GetFloatAmount(existingWeekLoad.LoadAmount)
-			}
-			fmt.Printf("weely sum was %f load amount is %f \n", weeklySum, utils.GetFloatAmount(l.LoadAmount))
-
-			fmt.Printf("total %f \n", weeklySum+utils.GetFloatAmount(l.LoadAmount))
-			if (weeklySum + utils.GetFloatAmount(l.LoadAmount)) >= 20000 {
-				accepted = false
-			}
-
-			l.Accepted = accepted // replace with IsValidLoad function
-			data.AddLoad(l)
-
-			var loadResult *data.LoadResult
-			loadResult = new(data.LoadResult)
-			loadResult.CustomerID = l.CustomerID
-			loadResult.ID = l.ID
-			loadResult.Accepted = l.Accepted
-
-			msg <- *loadResult
-		}
-
-		// if exists == false {
-
-		// 	//
-		// 	// check new load validity
-		// 	// data.CheckDailyLimitExceededForCustomer
-		// 	// data.CheckWeeklyLimitExceededForCustomer
-		// 	// data.CheckMaxLoadsExceededForCustomer
-
-		// 	//vlexisting, errs := data.GetVelocityLimitForCustomer(v.CustomerID)
-
-		// 	// if errs != nil {
-		// 	// 	// customer did not exist
-		// 	// 	var vl data.VelocityLimit
-		// 	// 	vl.CustomerID = v.CustomerID
-		// 	// 	vl.DailyAmount = v.LoadAmount
-		// 	// 	vl.WeeklyAmount = v.LoadAmount
-		// 	// 	vl.DailyLoads = 1
-		// 	// 	vl.LoadIDs = append(vl.LoadIDs, v.ID)
-
-		// 	// 	data.AddVelocityLimit(vl)
-
-		// 	// }
-
-		// 	var vl data.VelocityLimit
-		// 	vl.CustomerID = l.CustomerID
-		// 	vl.DailyAmount = 1000
-		// 	vl.WeeklyAmount = 1000
-		// 	vl.DailyLoads = 1
-		// 	vl.LoadIDs = append(vl.LoadIDs, l.ID)
-
-		// 	data.AddVelocityLimit(vl)
-
-		// 	// if valid add VL and return success
-		// 	var loadResult *data.LoadResult
-		// 	loadResult = new(data.LoadResult)
-		// 	loadResult.CustomerID = v.CustomerID
-		// 	loadResult.ID = v.ID
-		// 	loadResult.Accepted = true
-
-		// 	// else return decline
-
-		// 	msg <- *loadResult
-		// }
-
+		lh.ProcessLoadRequest(l, msg)
 	}
 
 	close(msg)
@@ -191,12 +124,13 @@ func writeOutput(fname string, msg <-chan data.LoadResult, done chan<- bool) {
 	for {
 		loadResult, more := <-msg
 		if more {
-			fmt.Println("received result")
+			// received a new LoadRequest
 			b, _ := json.Marshal(loadResult)
 			_, _ = datawriter.Write(b)
 			datawriter.WriteString("\n")
 		} else {
-			fmt.Println("done receiving results")
+
+			// finished receiving LoadRequests
 			datawriter.Flush()
 			file.Close()
 			done <- true
@@ -205,8 +139,4 @@ func writeOutput(fname string, msg <-chan data.LoadResult, done chan<- bool) {
 		}
 	}
 
-}
-
-func hello() string {
-	return "Hello World"
 }
