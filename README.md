@@ -13,10 +13,10 @@ batch-funds-loader is a Golang program that accepts or declines attempts to load
 
     $ ./batch-funds-loader [-h] [-v] [-i inputfile] [-o outputfile] 
 
-    *h - help*
-    *v - verbose*
-    *i - inputfile*
-    *o - outputfile*
+    h - help
+    v - verbose
+    i - inputfile, default input.txt
+    o - outputfile, default output.txt
 
 ## Example
 
