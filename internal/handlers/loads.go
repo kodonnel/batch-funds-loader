@@ -33,7 +33,7 @@ func NewLoads(l *logrus.Logger, db *data.LoadsDB, v *validator.Validate) *Loads 
 
 // ProcessLoadRequest processes the load request and return the result
 // (apply business logic)
-func (lh *Loads) ProcessLoadRequest(req data.Load) (*data.LoadResult, error) {
+func (lh *Loads) ProcessLoadRequest(req data.Load) (*data.Load, error) {
 
 	lh.l.Infoln("processing load request", req)
 
@@ -51,7 +51,7 @@ func (lh *Loads) ProcessLoadRequest(req data.Load) (*data.LoadResult, error) {
 		return nil, ErrValidationError
 	}
 
-	var loadResult *data.LoadResult
+	var loadResult *data.Load
 
 	// check if duplicate
 	if !lh.db.IsDuplicate(req) {
@@ -60,7 +60,7 @@ func (lh *Loads) ProcessLoadRequest(req data.Load) (*data.LoadResult, error) {
 
 		lh.db.AddLoad(req)
 
-		loadResult = new(data.LoadResult)
+		loadResult = new(data.Load)
 		loadResult.CustomerID = req.CustomerID
 		loadResult.ID = req.ID
 		loadResult.Accepted = req.Accepted

@@ -45,7 +45,7 @@ func main() {
 			verbose := c.Bool("verbose")
 
 			// channel to communicate between goroutines
-			msg := make(chan data.LoadResult)
+			msg := make(chan data.Load)
 			done := make(chan bool)
 
 			// use the standard logger
@@ -91,7 +91,7 @@ func main() {
 	}
 }
 
-func processFile(log *logrus.Logger, fname string, msg chan<- data.LoadResult, lh *handlers.Loads) {
+func processFile(log *logrus.Logger, fname string, msg chan<- data.Load, lh *handlers.Loads) {
 	f, err := os.Open(fname)
 
 	if err != nil {
@@ -130,7 +130,7 @@ func processFile(log *logrus.Logger, fname string, msg chan<- data.LoadResult, l
 	}
 }
 
-func writeOutput(log *logrus.Logger, fname string, msg <-chan data.LoadResult, done chan<- bool) {
+func writeOutput(log *logrus.Logger, fname string, msg <-chan data.Load, done chan<- bool) {
 	file, err := os.OpenFile(fname, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 
 	datawriter := bufio.NewWriter(file)
@@ -147,7 +147,7 @@ func writeOutput(log *logrus.Logger, fname string, msg <-chan data.LoadResult, d
 		loadResult, more := <-msg
 		if more {
 			// received a new LoadRequest
-			b, err := json.Marshal(loadResult)
+			b, err := data.MarshalJSON(loadResult)
 			if err != nil {
 				log.Errorln("unable to write load result", err)
 			}
