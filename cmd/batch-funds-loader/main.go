@@ -48,8 +48,6 @@ func main() {
 			msg := make(chan data.Load)
 			done := make(chan bool)
 
-			// use the standard logger
-			//logger := log.New(os.Stdout, "batch-funds-loader", log.LstdFlags)
 			logger := &logrus.Logger{
 				Out:   os.Stdout,
 				Level: logrus.InfoLevel,

@@ -106,7 +106,7 @@ func (lh *Loads) isWithinDailyLimits(load data.Load) bool {
 		return false
 	}
 
-	if (dailySum + amount) >= maxLoadAmountPerDay {
+	if (dailySum + amount) > maxLoadAmountPerDay {
 		lh.l.Infoln("exceeded maximum load amount per day")
 		result = false
 	}
@@ -125,6 +125,8 @@ func (lh *Loads) isWithinWeeklyLimits(load data.Load) bool {
 
 	// get all the loads for the same week as the requested load
 	loads := lh.db.GetLoads(load.CustomerID, true, utils.GetStartOfWeek(load.Time), utils.GetEndOfWeek(load.Time))
+	lh.l.Infof("found %d loads", len(loads))
+	lh.l.Infof("start time %s end time %s", utils.GetStartOfWeek(load.Time), utils.GetEndOfWeek(load.Time))
 
 	weeklySum, err := lh.addLoadAmounts(loads)
 
@@ -141,7 +143,7 @@ func (lh *Loads) isWithinWeeklyLimits(load data.Load) bool {
 		return false
 	}
 
-	if (weeklySum + amount) >= maxLoadAmountPerWeek {
+	if (weeklySum + amount) > maxLoadAmountPerWeek {
 		result = false
 		lh.l.Infoln("exceeded maximum load amount per week")
 	}
@@ -155,6 +157,7 @@ func (lh *Loads) addLoadAmounts(loads []*data.Load) (uint32, error) {
 
 	for _, load := range loads {
 
+		lh.l.Infoln("adding for load", load)
 		amount, err := utils.ConvertLoadAmount(load.LoadAmount)
 		if err != nil {
 			lh.l.Errorln("unable to get amount from fundsload", err)
