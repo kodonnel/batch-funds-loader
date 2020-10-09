@@ -44,6 +44,49 @@ func TestProcessLoadRequestError(t *testing.T) {
 		}
 
 // scenario
+// test duplicate returns error
+func TestProcessLoadRequestDuplicateError(t *testing.T) {
+
+	logger := &logrus.Logger{}
+
+	// create db instance
+	db := data.NewLoadsDB(logger)
+
+	// add pre-existing loads
+	loc, _ := time.LoadLocation("America/Toronto")
+
+	loadtime := time.Date(2020, 9, 27, 20, 0, 0, 0, loc)
+
+	load := new(data.Load)
+	load.CustomerID = "1234"
+	load.ID = "1234"
+	load.Time = loadtime
+	load.LoadAmount = "$5000.00"
+	load.Accepted = true
+	db.AddLoad(*load)
+
+	// create validator
+	v := validator.New()
+	v.RegisterValidation("loadAmount", data.ValidateLoadAmount)
+	v.RegisterValidation("identifier", data.ValidateID)
+
+	// req handlers
+	loadsHandler := handlers.NewLoads(logger, db, v)
+
+	given := new(data.Load)
+	given.CustomerID = "1234"
+	given.ID = "1234"
+	given.Time = loadtime
+	given.LoadAmount = "$0.01"	
+	
+	_, err := loadsHandler.ProcessLoadRequest(*given)
+
+	if err == nil {
+		t.Errorf("expected errors, received none")
+	}
+}
+
+// scenario
 // test valid input does not have error
 func TestProcessLoadRequestAccepted(t *testing.T) {
 
@@ -275,3 +318,4 @@ func TestProcessLoadRequestDeclinedMaxWeeklyAmount(t *testing.T) {
 		t.Errorf("failed expected %v got %v", expected, result)
 	}
 }
+
