@@ -16,8 +16,10 @@ var ErrDuplicateFound = fmt.Errorf("Duplicate Load Request Found")
 var ErrValidationError = fmt.Errorf("Unable to validate Load Request")
 
 const maxLoadsPerDay = 3
-const maxLoadAmountPerDay = 5000.00
-const maxLoadAmountPerWeek = 20000.00
+
+// dollar amounts multiplied by 100 (500 = $5)
+const maxLoadAmountPerDay = 500000
+const maxLoadAmountPerWeek = 2000000
 
 // Loads handler for getting and updating funds load requests
 type Loads struct {
@@ -81,33 +83,30 @@ func (lh *Loads) isWithinDailyLimits(load data.Load) bool {
 
 	result := true
 
-	sameDayLoads := lh.db.GetLoads(load.CustomerID, true, utils.GetStartOfDay(load.Time), utils.GetEndOfDay(load.Time))
+	// get all the loads for the same day as the requested load
+	loads := lh.db.GetLoads(load.CustomerID, true, utils.GetStartOfDay(load.Time), utils.GetEndOfDay(load.Time))
 
-	if len(sameDayLoads) >= maxLoadsPerDay {
+	if len(loads) >= maxLoadsPerDay {
 		lh.l.Infoln("exceeded maximum loads per day")
 		result = false
 	}
 
-	dailySum := 0.0
-	for _, existingLoad := range sameDayLoads {
+	dailySum, err := lh.addLoadAmounts(loads)
 
-		eamount, err := utils.GetFloatAmount(existingLoad.LoadAmount)
-		if err != nil {
-			lh.l.Errorln("unable to get amount from fundsload", err)
-			return false
-		}
-
-		dailySum = dailySum + eamount
+	if err != nil {
+		// if we could not calculate the daily sum, do not accept the transaction
+		lh.l.Errorln("unable to calculate daily sum", err)
+		return false
 	}
 
-	ramount, err := utils.GetFloatAmount(load.LoadAmount)
+	amount, err := utils.ConvertLoadAmount(load.LoadAmount)
 
 	if err != nil {
 		lh.l.Errorln("unable to get amount from fundsload request", err)
 		return false
 	}
 
-	if (dailySum + ramount) >= maxLoadAmountPerDay {
+	if (dailySum + amount) >= maxLoadAmountPerDay {
 		lh.l.Infoln("exceeded maximum load amount per day")
 		result = false
 	}
@@ -124,32 +123,44 @@ func (lh *Loads) isWithinWeeklyLimits(load data.Load) bool {
 
 	result := true
 
-	sameWeekLoads := lh.db.GetLoads(load.CustomerID, true, utils.GetStartOfWeek(load.Time), utils.GetEndOfWeek(load.Time))
+	// get all the loads for the same week as the requested load
+	loads := lh.db.GetLoads(load.CustomerID, true, utils.GetStartOfWeek(load.Time), utils.GetEndOfWeek(load.Time))
 
-	weeklySum := 0.0
-	for _, existingWeekLoad := range sameWeekLoads {
+	weeklySum, err := lh.addLoadAmounts(loads)
 
-		weamount, err := utils.GetFloatAmount(existingWeekLoad.LoadAmount)
-
-		if err != nil {
-			lh.l.Errorln("unable to get amount from fundsload request", err)
-			return false
-		}
-		weeklySum = weeklySum + weamount
+	if err != nil {
+		// if we could not calculate the weekly sum, do not accept the transaction
+		lh.l.Errorln("unable to calculate weekly sum", err)
+		return false
 	}
 
-	rwamount, err := utils.GetFloatAmount(load.LoadAmount)
+	amount, err := utils.ConvertLoadAmount(load.LoadAmount)
 	if err != nil {
 		// if we could not get the amount, do not accept the transaction
 		lh.l.Errorln("unable to get amount from fundsload request", err)
 		return false
 	}
 
-	if (weeklySum + rwamount) >= maxLoadAmountPerWeek {
+	if (weeklySum + amount) >= maxLoadAmountPerWeek {
 		result = false
 		lh.l.Infoln("exceeded maximum load amount per week")
-
 	}
 
 	return result
+}
+
+// AddLoadAmounts calculates the sum for a set of loads
+func (lh *Loads) addLoadAmounts(loads []*data.Load) (uint32, error) {
+	sum := uint32(0)
+
+	for _, load := range loads {
+
+		amount, err := utils.ConvertLoadAmount(load.LoadAmount)
+		if err != nil {
+			lh.l.Errorln("unable to get amount from fundsload", err)
+			return 0, err
+		}
+		sum = sum + amount
+	}
+	return sum, nil
 }

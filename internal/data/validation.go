@@ -13,8 +13,8 @@ import (
 //	- followed by 1 or more digits
 //  - followed by a .
 //  - followed by 2 digits
-// 	- is greater than or equal to 0.0
-//  - is less than 1.7976931348623157e+308 (the max for golangs float64 data type)
+// 	- is greater than or equal to 0
+//  - is less than $42,949,672.95 (the max for golangs uint32 data type)
 func ValidateLoadAmount(fl validator.FieldLevel) bool {
 	// loadAmount is of the format $123.45
 	// ^\$\d+\.\d{2}$
@@ -23,14 +23,11 @@ func ValidateLoadAmount(fl validator.FieldLevel) bool {
 
 	if len(strAmount) == 1 {
 
-		fltAmount, err := utils.GetFloatAmount(fl.Field().String())
+		_, err := utils.ConvertLoadAmount(fl.Field().String())
 		if err != nil {
 			return false
 		}
 
-		if fltAmount < 0.0 {
-			return false
-		}
 		return true
 	}
 	return false
@@ -38,14 +35,14 @@ func ValidateLoadAmount(fl validator.FieldLevel) bool {
 
 // ValidateID validates that an ID
 //	- is greater than 0
-//	- less than 2147483647 (the max for golangs int32 data type)
+//	- less than 4294967295 (the max for golangs uint32 data type)
 func ValidateID(fl validator.FieldLevel) bool {
-	id, err := strconv.ParseInt(fl.Field().String(), 0, 32)
+
+	// use base 10 and 32 bit unsigned int
+	_, err := strconv.ParseUint(fl.Field().String(), 10, 32)
 	if err != nil {
 		return false
 	}
-	if id < 1 {
-		return false
-	}
+
 	return true
 }
