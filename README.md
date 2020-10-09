@@ -102,6 +102,8 @@ Loads that were not accepted do not count against the maximum for the follow req
 Both accepted and not accepted loads (but not ignored loads) apply for the following requirement:
 - If a load ID is observed more than once for a particular user, all but the first instance can be ignored.
 
+Input arrives in ascending chronological order.
+
 ## Testing
 
 ### Run the tests
