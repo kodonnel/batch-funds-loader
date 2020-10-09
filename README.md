@@ -66,7 +66,7 @@ batch-funds-loader is a Golang program that accepts or declines attempts to load
 ## Assumptions
 
 If the given output file does not exist, it will be created. Otherwise it will be appended to.
-Load_amount are provided in CAD.
+load_amount values are provided in CAD.
 
 
 load example:
@@ -97,8 +97,6 @@ Loads that were not accepted do not count against the maximum for the follow req
 
 Both accepted and not accepted loads (but not ignored loads) apply for the following requirement:
 - If a load ID is observed more than once for a particular user, all but the first instance can be ignored.
-
-If a load could not be processed for some reason, it will not be accepted.
 
 ## Testing
 
