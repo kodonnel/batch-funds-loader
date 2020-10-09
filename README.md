@@ -119,8 +119,10 @@ Both accepted and not accepted loads (but not ignored loads) apply for the follo
 ## Future Enhancements
 
 - performance tests
+- parameterized tests
 - real database
 - caching the days loads for quick access
+- markdown apidocs
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
