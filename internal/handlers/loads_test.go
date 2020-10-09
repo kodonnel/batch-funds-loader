@@ -14,8 +14,8 @@ import (
 )
 
 // scenario
-// test invalid input results in error
-func TestProcessLoadRequestError(t *testing.T) {
+// invalid load results in error
+func TestProcessLoadRequestWithValidationError(t *testing.T) {
 
 			logger := &logrus.Logger{}
 
@@ -44,8 +44,8 @@ func TestProcessLoadRequestError(t *testing.T) {
 		}
 
 // scenario
-// test duplicate returns error
-func TestProcessLoadRequestDuplicateError(t *testing.T) {
+// duplicate load returns error
+func TestProcessLoadRequestWithDuplicateLoad(t *testing.T) {
 
 	logger := &logrus.Logger{}
 
@@ -87,8 +87,9 @@ func TestProcessLoadRequestDuplicateError(t *testing.T) {
 }
 
 // scenario
-// test valid input does not have error
-func TestProcessLoadRequestAccepted(t *testing.T) {
+// valid load is processed successfully
+// load is accepted
+func TestProcessLoadRequestWithValidLoad(t *testing.T) {
 
 	logger := &logrus.Logger{}
 
@@ -127,9 +128,9 @@ func TestProcessLoadRequestAccepted(t *testing.T) {
 }
 
 // scenario
-// test valid input does not have error
+// valid load is processed successfully
 // load is not accepted due to max daily amount exceeded
-func TestProcessLoadRequestDeclinedMaxDailyAmount(t *testing.T) {
+func TestProcessLoadRequestWithDeclinedMaxDailyAmount(t *testing.T) {
 
 	logger := &logrus.Logger{}
 
@@ -168,9 +169,9 @@ func TestProcessLoadRequestDeclinedMaxDailyAmount(t *testing.T) {
 }
 
 // scenario
-// test valid input does not have error
+// valid load is processed successfully
 // load is not accepted due to max daily number of loads exceeded
-func TestProcessLoadRequestDeclinedMaxDailyNumber(t *testing.T) {
+func TestProcessLoadRequestWithDeclinedMaxDailyNumber(t *testing.T) {
 
 	logger := &logrus.Logger{}
 
@@ -239,9 +240,9 @@ func TestProcessLoadRequestDeclinedMaxDailyNumber(t *testing.T) {
 }
 
 // scenario
-// test valid input does not have error
+// valid load is processed successfully
 // load is not accepted due to max weekly amount exceeded
-func TestProcessLoadRequestDeclinedMaxWeeklyAmount(t *testing.T) {
+func TestProcessLoadRequestWithDeclinedMaxWeeklyAmount(t *testing.T) {
 
 	logger := &logrus.Logger{}
 

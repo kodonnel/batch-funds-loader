@@ -32,7 +32,7 @@ func TestValidateID(t *testing.T) {
 
 // scenario
 // load amount is missing $
-func TestValidateIDLoadAmount(t *testing.T) {
+func TestValidateIDWithLoadAmountMissingDollar(t *testing.T) {
 
 	load := new(data.Load)
 	load.CustomerID = "1234"
@@ -52,8 +52,29 @@ func TestValidateIDLoadAmount(t *testing.T) {
 }
 
 // scenario
+// load amount is missing .
+func TestValidateIDWithLoadAmountMissingDot(t *testing.T) {
+
+	load := new(data.Load)
+	load.CustomerID = "1234"
+	load.ID = "1234"
+	load.Time = time.Now()
+	load.LoadAmount = "$12345"
+
+	v := validator.New()
+	v.RegisterValidation("identifier", data.ValidateID)
+	v.RegisterValidation("loadAmount", data.ValidateLoadAmount)
+
+	err := v.Struct(load)
+
+	if err == nil {
+    	t.Errorf("expected validation errors, none received")
+  	}
+}
+
+// scenario
 // load amount is too big
-func TestValidateIDLoadAmountTooBig(t *testing.T) {
+func TestValidateIDWithLoadAmountTooBig(t *testing.T) {
 
 	load := new(data.Load)
 	load.CustomerID = "1234"
@@ -74,7 +95,7 @@ func TestValidateIDLoadAmountTooBig(t *testing.T) {
 
 // scenario
 // id is too small
-func TestValidateIDSmallID(t *testing.T) {
+func TestValidateIDWithSmallID(t *testing.T) {
 
 	load := new(data.Load)
 	load.CustomerID = "-4"
@@ -95,7 +116,7 @@ func TestValidateIDSmallID(t *testing.T) {
 
 // scenario
 // id is too big
-func TestValidateIDBigID(t *testing.T) {
+func TestValidateIDWithBigID(t *testing.T) {
 
 	load := new(data.Load)
 	load.CustomerID = "9999999999999999"

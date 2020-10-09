@@ -32,6 +32,7 @@ func TestIsDuplicateWithExistingLoad(t *testing.T) {
 
 // scenario
 // adding two different funds loads
+// different customerIDs
 func TestIsDuplicateWithNewCustomerId(t *testing.T) {
 
 	logger := &logrus.Logger{}
@@ -57,6 +58,7 @@ func TestIsDuplicateWithNewCustomerId(t *testing.T) {
 
 // scenario
 // adding two different funds loads
+// different loadIDs
 func TestIsDuplicateWithNewLoadId(t *testing.T) {
 
 	logger := &logrus.Logger{}

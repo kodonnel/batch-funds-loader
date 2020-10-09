@@ -94,7 +94,9 @@ func (lh *Loads) isWithinDailyLimits(load data.Load) bool {
 	dailySum, err := lh.addLoadAmounts(loads)
 
 	if err != nil {
-		// if we could not calculate the daily sum, do not accept the transaction
+		// defensive coding
+		// input validation should prevent this
+		// if we could not calculate the daily sum, do not accept the load
 		lh.l.Errorln("unable to calculate daily sum", err)
 		return false
 	}
@@ -102,6 +104,8 @@ func (lh *Loads) isWithinDailyLimits(load data.Load) bool {
 	amount, err := utils.ConvertLoadAmount(load.LoadAmount)
 
 	if err != nil {
+		// defensive coding
+		// input validation should prevent this
 		lh.l.Errorln("unable to get amount from fundsload request", err)
 		return false
 	}
@@ -131,14 +135,18 @@ func (lh *Loads) isWithinWeeklyLimits(load data.Load) bool {
 	weeklySum, err := lh.addLoadAmounts(loads)
 
 	if err != nil {
-		// if we could not calculate the weekly sum, do not accept the transaction
+		// defensive coding
+		// input validation should prevent this
+		// if we could not calculate the weekly sum, do not accept the load
 		lh.l.Errorln("unable to calculate weekly sum", err)
 		return false
 	}
 
 	amount, err := utils.ConvertLoadAmount(load.LoadAmount)
 	if err != nil {
-		// if we could not get the amount, do not accept the transaction
+		// defensive coding
+		// input validation should prevent this 
+		// if we could not get the amount, do not accept the load
 		lh.l.Errorln("unable to get amount from fundsload request", err)
 		return false
 	}
@@ -160,6 +168,8 @@ func (lh *Loads) addLoadAmounts(loads []*data.Load) (uint32, error) {
 		lh.l.Infoln("adding for load", load)
 		amount, err := utils.ConvertLoadAmount(load.LoadAmount)
 		if err != nil {
+			// defensive coding
+			// input validation should prevent this 
 			lh.l.Errorln("unable to get amount from fundsload", err)
 			return 0, err
 		}

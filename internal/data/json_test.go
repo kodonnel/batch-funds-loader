@@ -7,7 +7,7 @@ import (
 )
 
 // scenario
-// adding the same funds load twice
+// test marshaling a load
 func TestMarshalJSON(t *testing.T) {
 
 	load := new(data.Load)

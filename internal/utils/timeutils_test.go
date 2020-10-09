@@ -8,7 +8,7 @@ import (
 )
 
 // scenario
-// input is the start of the day
+// input is the start of the day (UTC)
 func TestGetStartOfDayWithStartOfDay(t *testing.T) {
 	loc, _ := time.LoadLocation("America/Toronto")
 
@@ -24,7 +24,7 @@ func TestGetStartOfDayWithStartOfDay(t *testing.T) {
 }
 
 // scenario
-// input is the end of the day
+// input is the end of the day (UTC)
 func TestGetStartOfDayWithEndOfDay(t *testing.T) {
 	loc, _ := time.LoadLocation("America/Toronto")
 
@@ -42,7 +42,7 @@ func TestGetStartOfDayWithEndOfDay(t *testing.T) {
 }
 
 // scenario
-// input is the start of the day
+// input is the start of the day (UTC)
 func TestGetEndOfDayWithStartOfDay(t *testing.T) {
 	loc, _ := time.LoadLocation("America/Toronto")
 
@@ -60,7 +60,7 @@ func TestGetEndOfDayWithStartOfDay(t *testing.T) {
 }
 
 // scenario
-// input is the end of the day
+// input is the end of the day (UTC)
 func TestGetEndOfDayWithEndOfDay(t *testing.T) {
 	loc, _ := time.LoadLocation("America/Toronto")
 
@@ -78,7 +78,7 @@ func TestGetEndOfDayWithEndOfDay(t *testing.T) {
 }
 
 // scenario
-// input is a monday (beginning of week)
+// input is a monday (beginning of week) (UTC)
 func TestGetStartOfWeekWithMonday(t *testing.T) {
 	loc, _ := time.LoadLocation("America/Toronto")
 
@@ -204,6 +204,86 @@ func TestGetEndOfWeekWithSunday(t *testing.T) {
 
 	// 19:59 sept 27 Toronto time = 23:59 sept 27 UTC (Sun)
 	expected := time.Date(2020, 9, 27, 19, 59, 59, 999999999, loc)
+	result := utils.GetEndOfWeek(testTime)
+	if result != expected {
+		t.Errorf("failed expected %v got %v", expected, result)
+	}
+}
+
+// scenario
+// input is a monday
+func TestGetEndOfWeekWithMonday(t *testing.T) {
+	loc, _ := time.LoadLocation("America/Toronto")
+
+	// 20:00 sept 27 Toronto time = 00:00 sept 28 UTC (Mon)
+	testTime := time.Date(2020, 9, 27, 20, 0, 0, 0, loc)
+
+	// 19:59 oct 4 27 Toronto time = 23:59 oct 4 UTC (Sun)
+	expected := time.Date(2020, 10, 4, 19, 59, 59, 999999999, loc)
+	result := utils.GetEndOfWeek(testTime)
+	if result != expected {
+		t.Errorf("failed expected %v got %v", expected, result)
+	}
+}
+
+// scenario
+// input is a tuesday
+func TestGetEndOfWeekWithTuesday(t *testing.T) {
+	loc, _ := time.LoadLocation("America/Toronto")
+
+	// 20:00 sept 28 Toronto time = 00:00 sept 29 UTC (Tue)
+	testTime := time.Date(2020, 9, 28, 20, 0, 0, 0, loc)
+
+	// 19:59 oct 4 27 Toronto time = 23:59 oct 4 UTC (Sun)
+	expected := time.Date(2020, 10, 4, 19, 59, 59, 999999999, loc)
+	result := utils.GetEndOfWeek(testTime)
+	if result != expected {
+		t.Errorf("failed expected %v got %v", expected, result)
+	}
+}
+
+// scenario
+// input is a wednesday
+func TestGetEndOfWeekWithWednesday(t *testing.T) {
+	loc, _ := time.LoadLocation("America/Toronto")
+
+	// 20:00 sept 29 Toronto time = 00:00 sept 30 UTC (Wed)
+	testTime := time.Date(2020, 9, 29, 20, 0, 0, 0, loc)
+
+	// 19:59 oct 4 27 Toronto time = 23:59 oct 4 UTC (Sun)
+	expected := time.Date(2020, 10, 4, 19, 59, 59, 999999999, loc)
+	result := utils.GetEndOfWeek(testTime)
+	if result != expected {
+		t.Errorf("failed expected %v got %v", expected, result)
+	}
+}
+
+// scenario
+// input is a thursday
+func TestGetEndOfWeekWithThursday(t *testing.T) {
+	loc, _ := time.LoadLocation("America/Toronto")
+
+	// 20:00 sept 30 Toronto time = 00:00 oct 1 UTC (Thurs)
+	testTime := time.Date(2020, 9, 30, 20, 0, 0, 0, loc)
+
+	// 19:59 oct 4 27 Toronto time = 23:59 oct 4 UTC (Sun)
+	expected := time.Date(2020, 10, 4, 19, 59, 59, 999999999, loc)
+	result := utils.GetEndOfWeek(testTime)
+	if result != expected {
+		t.Errorf("failed expected %v got %v", expected, result)
+	}
+}
+
+// scenario
+// input is a friday
+func TestGetEndOfWeekWithFriday(t *testing.T) {
+	loc, _ := time.LoadLocation("America/Toronto")
+
+	// 20:00 oct 1 Toronto time = 00:00 oct 2 UTC (Fri)
+	testTime := time.Date(2020, 10, 1, 20, 0, 0, 0, loc)
+
+	// 19:59 oct 4 27 Toronto time = 23:59 oct 4 UTC (Sun)
+	expected := time.Date(2020, 10, 4, 19, 59, 59, 999999999, loc)
 	result := utils.GetEndOfWeek(testTime)
 	if result != expected {
 		t.Errorf("failed expected %v got %v", expected, result)
