@@ -100,7 +100,17 @@ Both accepted and not accepted loads (but not ignored loads) apply for the follo
 
 ## Testing
 
+### Run the tests
     $ make test
+
+### Coverage report
+    $ make coverage
+
+## Future Enhancements
+
+- performance tests
+- real database
+- caching the days loads for quick access
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
