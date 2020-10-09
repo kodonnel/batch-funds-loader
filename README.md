@@ -106,6 +106,12 @@ Both accepted and not accepted loads (but not ignored loads) apply for the follo
 ### Coverage report
     $ make coverage
 
+## Documentation
+
+    $ go doc [pkg]
+
+    packages include data, utils, and handlers
+
 ## Future Enhancements
 
 - performance tests
