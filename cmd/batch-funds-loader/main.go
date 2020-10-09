@@ -112,6 +112,7 @@ func processFile(log *logrus.Logger, fname string, msg chan<- data.Load, lh *han
 		}
 
 		loadResult, err := lh.ProcessLoadRequest(l)
+
 		if err != nil {
 			// log error and continue to the next item
 			log.Errorln("unable to process load request", l, err)

@@ -85,7 +85,7 @@ For a valid load:
 - customer_id will be greater than or equal to 1 and less than 4294967295 (the max for golangs uint32 data type)
 - load_amount will always match the pattern ^\$\d+\.\d{2}$
 - load amount will not be negative and will be less than 4294967295 (the max for golangs uint32 data type)
-- time will always be provided in the ISO 8601 format in UTC
+- time will always be provided in the ISO 8601 format in the America/Toronto timezone
 
 Invalid load funds requests will be ignored.
 

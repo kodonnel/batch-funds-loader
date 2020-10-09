@@ -28,7 +28,7 @@ type Load struct {
 	// the time for this load
 	//
 	// required: true
-	Time time.Time `json:"time" validate:"required"`
+	Time time.Time `json:"time" time_location:"America/Toronto" validate:"required"`
 
 	// if the load request was accepted
 	//
