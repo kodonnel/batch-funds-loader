@@ -124,7 +124,7 @@ Input arrives in ascending chronological order.
 - parameterized tests
 - real database
 - caching the days loads for quick access
-- markdown apidocs
+- generated markdown apidocs
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
