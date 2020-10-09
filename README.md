@@ -2,6 +2,10 @@
 
 batch-funds-loader is a Golang program that accepts or declines attempts to load funds into customers' accounts in real-time.
 
+## Prerequisites
+
+    golang version with go modules (developed and tested on version 1.13.4)
+
 ## Installation
 
     $ git clone git@github.com:kodonnel/batch-funds-loader.git
